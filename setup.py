@@ -21,7 +21,7 @@ setup(
     scripts=["sprkana/cli.py"],
     entry_points={
         "console_scripts": [
-            "sparkana=sprkana.cli:main",
+            "sprkana=sprkana.cli:main",
         ],
     },
     package_data={

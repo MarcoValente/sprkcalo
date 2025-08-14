@@ -32,7 +32,7 @@ def get_spark_session(*args, **kwargs):
         log.info(f"{k} = {v}")
     return spark
 
-def col_from_schema(col_name, schema=None):
+def colname_from_schema(col_name, schema=None):
     if schema is None:
         schema = get_schema()
     def get_nested_value(data, path, sep="/"):
@@ -47,42 +47,42 @@ def col_from_schema(col_name, schema=None):
                 return path
         log.debug(f"Found path '{path}' in schema, returning column name '{current}'")
         return current
-    # Use regex to find the column in the schema
-    
-    return F.col(get_nested_value(schema, col_name))
+    return get_nested_value(schema, col_name)
 
-def add_jets_n(df, **kwargs):
-    log.info("Adding jet_n column")
+def col_from_schema(col_name, schema=None):
+    return F.col(colname_from_schema(col_name, schema=schema))
+
+def op_add_jets_n(df, out_name_schema='', count_col_name='',**kwargs):
     # Assuming jets/jet_pt is the path to the jet pt column in the schema
-    df = df.withColumn("jet_n", F.size(col_from_schema(kwargs['count_col_name'])))
+    df = df.withColumn(colname_from_schema(out_name_schema), F.size(col_from_schema(count_col_name)))
     return df
 
-def _analyze_df(df, **kwargs):
-    log.info(f"Defining DataFrame with kwargs: {kwargs}")
+_ops_dict = {
+    'add_jets_n' : op_add_jets_n,
+}
+
+def get_operation(*args,name='',**kwargs):
+    if name in _ops_dict.keys():
+        log.info(f"Retrieved operation '{name}' with args = {args} and kwargs = {kwargs}")
+        return _ops_dict[name]
+    else:
+        log.error(f"Unknown operation '{name}'")
+        raise ValueError
+
+def _analyze_df(df, operations=[], **kwargs):
+    log.info(f"Defining DataFrame with initial df={df}")
     
-    for operation in kwargs['operations']:
-        if operation['name'] == 'add_jets_n':
-            df = add_jets_n(df,**operation)
-        # elif operation['name'] == 'select_atleast_jet_n':
-        #     value = operation.get('value', 2)
-        #     log.debug(f"Selecting events with at least {value} jets")
-        #     df = df.filter(F.col("jet_n") >= value)
-        # elif operation['name'] == 'add_lead_jet':
-        #     log.debug("Adding lead jet column")
-        #     df = df.withColumn("lead_jet_pt", F.max(col_from_schema("jets/jet_pt")).over(F.Window.partitionBy()))
-        else:
-            log.error(f"Unknown operation: {operation['name']}")
-            return None
+    for op in operations:
+        log.info(f'Adding operation {op}')
+        op_func = get_operation(**op)
+        df = op_func(df,**op)
     
-    # if kwargs['operations']['add_jets_n'] :
-    #     log.debug("Adding jet_n column")
-    #     df = df.withColumn("jet_n", F.size(col_from_schema("jets/jet_pt")))
     return df
 
 @debug_msg
-def analysis_df(spark_sess, *args, **kwargs):
-    log.info(f"Creating DataFrame with args: {args} and kwargs: {kwargs}")
+def analysis_df(spark_sess, *args, analysis_df={}, inputs=[], **kwargs):
+    log.info(f"Creating DataFrame with spark_sess={spark_sess}, inputs={inputs}, analysis_df={analysis_df}")
     # Here you would typically read data into a DataFrame
-    df = spark_sess.read.parquet(*kwargs['inputs'])
-    df = _analyze_df(df, **kwargs['analysis_df'])
+    df = spark_sess.read.parquet(*inputs)
+    df = _analyze_df(df, **analysis_df)
     return df
