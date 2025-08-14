@@ -63,10 +63,17 @@ def op_filt_greateq(df, *args,
     df = df.filter(col_from_schema(col_name) >= value)
     return df
 
+
+def op_filt_great(df, *args, 
+                          col_name='', value=-1, **kwargs):
+    df = df.filter(col_from_schema(col_name) > value)
+    return df
+
 _ops_dict = {
     #Add columns
     'add_jets_n' : op_add_jets_n,
     #Filters
+    'filt_great' : op_filt_great,
     'filt_greateq' : op_filt_greateq,
 }
 
