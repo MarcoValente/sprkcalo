@@ -52,13 +52,22 @@ def colname_from_schema(col_name, schema=None):
 def col_from_schema(col_name, schema=None):
     return F.col(colname_from_schema(col_name, schema=schema))
 
-def op_add_jets_n(df, out_name_schema='', count_col_name='',**kwargs):
+def op_add_jets_n(df, *args, 
+                  out_name_schema='', count_col_name='', **kwargs):
     # Assuming jets/jet_pt is the path to the jet pt column in the schema
     df = df.withColumn(colname_from_schema(out_name_schema), F.size(col_from_schema(count_col_name)))
     return df
 
+def op_filt_greateq(df, *args, 
+                          col_name='', value=-1, **kwargs):
+    df = df.filter(col_from_schema(col_name) >= value)
+    return df
+
 _ops_dict = {
+    #Add columns
     'add_jets_n' : op_add_jets_n,
+    #Filters
+    'filt_greateq' : op_filt_greateq,
 }
 
 def get_operation(*args,name='',**kwargs):
