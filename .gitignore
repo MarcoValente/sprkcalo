@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+*.sqlite3
+*.db
+*.dat
+*.csv
+*.tsv
+*.tmp
+*.bak
+*.swp
+*.swo
+*.env
+venv/
+.env
+.env.*
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+notebooks/artifacts/
+notebooks/spark-warehouse/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test cache
+*.pytest_cache/
+
+# Spark
+sparkana/
+
+# Ignore config files with secrets
+config/*.yaml
+
+# Misc
+*.~
