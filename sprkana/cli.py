@@ -1,10 +1,12 @@
 
 from .config import (
-    load_yaml,
     parse_args,
     print_config,
 )
-from .commands import run_show
+from .commands import (
+    run_show,
+    run_histdump,
+)
 from pprint import pprint as pp
 import logging as log
 
@@ -19,5 +21,15 @@ def main():
     print_config(vars(args))
 
     # Subcommand-specific arguments
-    if args.command == "show":
-        run_show(**vars(args))
+    _command_dict = {
+        'show' : run_show,
+        'hist_dump' : run_histdump,
+    }
+
+    if not args.command in _command_dict.keys():
+        log.error(f'Impossible to find command for \'{args.command}\'')
+        exit(1)
+    
+    #Execute function
+    _ = _command_dict[args.command](**vars(args))
+    pass

@@ -3,6 +3,7 @@ from pathlib import Path
 import yaml
 import argparse
 import logging as log
+import sys
 
 def load_yaml(path: Union[str, Path]) -> dict:
     def yaml_include(loader, node):
@@ -18,32 +19,43 @@ def load_yaml(path: Union[str, Path]) -> dict:
         return yaml.load(f, Loader=yaml.SafeLoader) or {}
     
 def parse_args():
-    init_parser = argparse.ArgumentParser(description="SparkAnalysis CLI", add_help=False)
-    init_parser.add_argument("-c", "--config", help="Path to general YAML config")
+    #Init parser for defaults from YAML
+    _parser = argparse.ArgumentParser(description="SparkAnalysis CLI", add_help=False)
 
-    known_args, remaining_argv = init_parser.parse_known_args()
+    _parser.add_argument("-c", "--mainConfig", help="Path to general YAML config", required=True)
+    _parser.add_argument("-i", "--inputs", nargs='+', help="List of parquet input files")
+    _parser.add_argument("-N", "--names", nargs='+', help="List of names for parquet files")
+    _parser.add_argument('-l', "--output_level", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="INFO")
+    _parser.add_argument('-o', "--output_dir", type=str, default='', help='Directory where to store output files')
+    _parser.add_argument('-f', '--force', action='store_true', default=False, help='Force the script to write to existing directory')
+    _parser.add_argument("-n", "--nevents", type=int, default=-1, help="Number of events to process")
 
-    defaults = {}
-    if known_args.config:
-        defaults = load_yaml(known_args.config)
-    defaults["config"] = known_args.config
+    _subparsers = _parser.add_subparsers(dest="command", required=True)
+    # Show subcommand
+    _show_parser = _subparsers.add_parser("show", help="Show the dataframe of the model")
+    _show_parser.add_argument("--limit", type=int, default=20, help="Number of rows to show")
+    # Hist dump subcommand
+    _histdump_parser = _subparsers.add_parser('hist_dump', help="Dump histograms of the analysis")
+    _histdump_parser.add_argument('--histConfig', type=str, default=None, help="YAML file containing histogram information to dump", required=True)
 
-    parser = argparse.ArgumentParser(parents=[init_parser], description="SparkAnalysis CLI")
-    # print(parser.parse_args().config)
+    known_args, remaining_argv = _parser.parse_known_args()
+
+    #Set defaults
+    defaults = None
+    if known_args.mainConfig:
+        defaults = load_yaml(known_args.mainConfig)
+
+    default_hists = None
+    if 'histConfig' in vars(known_args).keys():
+        default_hists = load_yaml(known_args.histConfig)
+        defaults.update(default_hists)
+
+    #Main parser
+
+    parser = argparse.ArgumentParser(parents=[_parser], description="SparkAnalysis CLI")
     parser.set_defaults(**defaults)
 
-    parser.add_argument("-i", "--inputs", nargs='+', help="List of parquet input files")
-    parser.add_argument("-N", "--names", nargs='+', help="List of names for parquet files")
-    parser.add_argument('-l', "--output_level", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="INFO")
-    parser.add_argument("-n", "--nevents", type=int, help="Number of events to process")
-
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    # Show subcommand
-    show_parser = subparsers.add_parser("show", help="Show the dataframe of the model")
-    show_parser.add_argument("--epochs", type=int, help="Number of epochs")
-
-    args= parser.parse_args(remaining_argv)
+    args= parser.parse_args(sys.argv[1:])
 
     return args
 
