@@ -3,3 +3,7 @@ histograms:
     nbins: 50
     bounds : [0., 4000.]
     col_name : 'jet_pt_0' #Col name to use for the histogram !Todo: connect to schema
+  - name: jet_m_0
+    nbins: 50
+    bounds : [0., 4000.]
+    col_name : 'jet_m_0' #Col name to use for the histogram !Todo: connect to schema

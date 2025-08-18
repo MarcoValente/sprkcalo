@@ -29,8 +29,9 @@ def parse_args():
     _parser.add_argument('-o', "--output_dir", type=str, default='', help='Directory where to store output files')
     _parser.add_argument('-f', '--force', action='store_true', default=False, help='Force the script to write to existing directory')
     _parser.add_argument("-n", "--nevents", type=int, default=-1, help="Number of events to process")
+    _parser.add_argument("--inputsToMatch", nargs='+', help="List of parquet input files to use for matching the main ones.")
 
-    _subparsers = _parser.add_subparsers(dest="command", required=True)
+    _subparsers = _parser.add_subparsers(dest="command", required=False)
     # Show subcommand
     _show_parser = _subparsers.add_parser("show", help="Show the dataframe of the model")
     _show_parser.add_argument("--limit", type=int, default=20, help="Number of rows to show")

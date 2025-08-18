@@ -37,7 +37,7 @@ def run_preana(*args,**kwargs):
         create_dir(kwargs['output_dir'])
 
 @debug_msg
-@check_has_kwarg('spark')
+@check_has_kwarg('nevents')
 def run_ana(*args, spark=None, **kwargs):
     log.info(f"Running 'ana' command...")
     log.debug(f"Running 'ana' command with args: {args} and kwargs: {kwargs}")
@@ -47,12 +47,12 @@ def run_ana(*args, spark=None, **kwargs):
 
 @debug_msg
 @check_has_kwarg('spark')
-def run_show(*args, spark=None, limit:int = 20, **kwargs):
+def run_show(*args, spark=None, limit:int = 20, truncate=False, **kwargs):
     log.info(f"Running 'show' command...")
     log.debug(f"Running 'show' command with args: {args} and kwargs: {kwargs}")
     run_preana(*args,**kwargs)
     spark_sess, df = run_ana(*args,spark=spark,**kwargs)
-    df.limit(limit).show()  # Display the DataFrame
+    df.limit(limit).show(truncate=truncate)  # Display the DataFrame
     return (spark_sess, df)
 
 @debug_msg
