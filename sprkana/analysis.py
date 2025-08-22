@@ -11,7 +11,8 @@ from .schema import (
     add_to_schema
 )
 from .utils import (
-    get_nested_value
+    get_nested_value,
+    get_nested_values,
 )
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
@@ -42,11 +43,11 @@ def get_spark_session(*args, **kwargs):
 def is_colname_in_schema(col_name,schema=None):
     if schema is None:
         schema = get_schema()
-    ret = get_nested_value(schema, col_name, ret_none=True)
+    ret = get_nested_values(schema, col_name, ret_none=True)
     return ret is not None
 
-def check_colname_in_schema(col_name,*args,raise_err=False,**kwargs):
-    for cname in [col_name] + list(args):
+def check_colname_in_schema(col_name_expr,*args,raise_err=False,**kwargs):
+    for cname in [col_name_expr] + list(args):
         ret = is_colname_in_schema(cname,**kwargs)
         if not ret:
             if raise_err:
@@ -60,16 +61,32 @@ def colname_from_schema(col_name, schema=None):
         schema = get_schema()
     return get_nested_value(schema, col_name)
 
+def colnames_from_schema(col_name_exrp, schema=None):
+    if schema is None:
+        schema = get_schema()
+    return get_nested_values(schema, col_name_exrp)
+
 def colname_from_schema_and_check(col_name, *args, schema=None, **kwargs):
     check_colname_in_schema(col_name,schema=schema,**kwargs)
     return colname_from_schema(col_name, *args, schema=schema, **kwargs)
 
+def colnames_from_schema_and_check(col_name_exrp, *args, schema=None, **kwargs):
+    check_colname_in_schema(col_name_exrp,schema=schema,**kwargs)
+    return colnames_from_schema(col_name_exrp, *args, schema=schema, **kwargs)
+
 def col_from_schema(col_name, schema=None):
     return F.col(colname_from_schema(col_name, schema=schema))
+
+def cols_from_schema(col_name_expr, schema=None):
+    return [F.col(cname) for cname in colnames_from_schema(col_name_expr, schema=schema)]
 
 def col_from_schema_and_check(col_name,*args,schema=None,**kwargs):
     check_colname_in_schema(col_name,schema=schema,**kwargs)
     return col_from_schema(col_name, *args, schema=schema, **kwargs)
+
+def cols_from_schema_and_check(col_name_expr,*args,schema=None,**kwargs):
+    check_colname_in_schema(col_name_expr,schema=schema,**kwargs)
+    return cols_from_schema(col_name_expr, *args, schema=schema, **kwargs)
 
 @check_has_kwarg('out_name_schema','count_col_name')
 def op_add_jets_n(df, *args, 
@@ -107,7 +124,7 @@ def op_add_lead_obj(df,
         for i in indices_values:
             for sch_i,cname in enumerate(_cnames):
                 add_to_schema(f'{col_names_toadd[sch_i]}_{i}')
-                df = df.withColumn(f'{cname}_{i}', F.col(f"{_cname_tosort}_struct_{i}.{cname}"))
+                df = df.withColumn(colname_from_schema_and_check(f'{col_names_toadd[sch_i]}_{i}'), F.col(f"{_cname_tosort}_struct_{i}.{cname}"))
     if not store_struct:
         df=df.drop(*(f"{_cname_tosort}_struct_{i}" for i in indices_values))
     else:
@@ -163,6 +180,12 @@ def op_add_deltaR(df, *args, eta1_name='', phi1_name='', eta2_name='', phi2_name
     df=df.withColumn(colname_from_schema_and_check(out_name_schema),F.sqrt(d_eta*d_eta + d_phi*d_phi))
     return df
 
+def op_select(df, *args, expressions=[], **kwargs):
+    cnames=[]
+    for expr in expressions:
+        cnames+=colnames_from_schema_and_check(expr)
+    return df.select(*cnames)
+
 _ops_dict = {
     #Add/remove columns
     'add_jets_n' : op_add_jets_n,
@@ -170,6 +193,7 @@ _ops_dict = {
     'add_delta' : op_add_delta,
     'add_deltaR' : op_add_deltaR,
     'drop' : op_drop,
+    'select' : op_select,
     #Filters
     'filt_great' : op_filt_great,
     'filt_greateq' : op_filt_greateq,
@@ -224,7 +248,7 @@ def _analyze_df(spark_sess, df, *args, operations=[], nevents=-1, matching = Non
     if nevents>0:
         df = df.limit(nevents)
 
-    if matching is not None:
+    if all(x is not None for x in [matching, inputsToMatch]):
         df = matched_df(spark_sess, df, operations=operations, matching=matching, inputsToMatch=inputsToMatch)
         if 'operations' in matching.keys():
             for op in matching['operations']:

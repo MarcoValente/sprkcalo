@@ -3,7 +3,59 @@ histograms:
     nbins: 50
     bounds : [0., 4000.]
     col_name : 'jet_pt_0' #Col name to use for the histogram !Todo: connect to schema
+    xlabel: 'Leading jet $p_T$ (GeV)'
+  - name: jet_eta_0
+    nbins: 100
+    bounds : [-7.0, 7.0]
+    col_name : 'jet_eta_0' #Col name to use for the histogram !Todo: connect to schema
+    xlabel: 'Leading jet $\eta$'
+  - name: jet_phi_0
+    nbins: 50
+    bounds : [-10., 10.]
+    col_name : 'jet_phi_0' #Col name to use for the histogram !Todo: connect to schema
+    xlabel: 'Leading jet $\phi$'
   - name: jet_m_0
     nbins: 50
-    bounds : [0., 4000.]
-    col_name : 'jet_m_0' #Col name to use for the histogram !Todo: connect to schema
+    bounds : [0., 500.]
+    col_name : 'jet_m_0'
+    xlabel: 'Leading jet $m$ (GeV)'
+  - name: jet_time_0
+    nbins: 50
+    bounds : [-0.5, 0.5]
+    col_name : 'jet_time_0'
+    xlabel: 'Leading jet time (ns)'
+  - name: jet_nconst_0
+    nbins: 100
+    bounds : [0, 100]
+    col_name : 'jet_nconst_0'
+    xlabel: 'Leading jet $N_\text{const}$'
+  - name: jet_dpt_0
+    nbins: 50
+    bounds : [-1000., 1000.]
+    col_name : 'jet_dpt_0'
+    xlabel: 'Leading jet $p_T$ residual (GeV)'
+  - name: jet_dphi_0
+    nbins: 50
+    bounds : [-0.2, 0.2]
+    col_name : 'jet_dphi_0'
+    xlabel: 'Leading jet $\phi$ residual'
+  - name: jet_deta_0
+    nbins: 50
+    bounds : [-0.2, 0.2]
+    col_name : 'jet_deta_0'
+    xlabel: 'Leading jet $\eta$ residual'
+  - name: jet_dm_0
+    nbins: 50
+    bounds : [-100., 100.]
+    col_name : 'jet_dm_0'
+    xlabel: 'Leading jet $m$ residual (GeV)'
+  - name: jet_dtime_0
+    nbins: 50
+    bounds : [-2.5, 2.5]
+    col_name : 'jet_dtime_0'
+    xlabel: 'Leading jet time residual (ns)'
+  - name: jet_dnconst_0
+    nbins: 100
+    bounds : [-50, 50]
+    col_name : 'jet_dnconst_0'
+    xlabel: 'Leading jet $N_\text{const}$ residual'

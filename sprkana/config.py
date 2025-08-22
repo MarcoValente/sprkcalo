@@ -1,22 +1,10 @@
-from typing import Union
-from pathlib import Path
-import yaml
 import argparse
 import logging as log
 import sys
+from .utils import (
+    load_yaml
+)
 
-def load_yaml(path: Union[str, Path]) -> dict:
-    def yaml_include(loader, node):
-        # Ensure we resolve relative paths correctly
-        filename = Path(loader.name).parent / node.value
-        with open(filename, "r") as f:
-            return yaml.load(f, Loader=yaml.SafeLoader)
-    # Register on SafeLoader (important!)
-    yaml.SafeLoader.add_constructor("!include", yaml_include)
-
-    path = Path(path)
-    with open(path, "r") as f:
-        return yaml.load(f, Loader=yaml.SafeLoader) or {}
     
 def parse_args():
     #Init parser for defaults from YAML
@@ -35,6 +23,7 @@ def parse_args():
     # Show subcommand
     _show_parser = _subparsers.add_parser("show", help="Show the dataframe of the model")
     _show_parser.add_argument("--limit", type=int, default=20, help="Number of rows to show")
+    _show_parser.add_argument("--truncate", action='store_true', default=False, help="Truncate output display or not")
     # Hist dump subcommand
     _histdump_parser = _subparsers.add_parser('hist_dump', help="Dump histograms of the analysis")
     _histdump_parser.add_argument('--histConfig', type=str, default=None, help="YAML file containing histogram information to dump", required=True)

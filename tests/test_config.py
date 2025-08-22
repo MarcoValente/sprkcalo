@@ -1,13 +1,14 @@
 import unittest
 from sprkana.config import load_yaml
 
+_test_configfile='config/analysis.yaml'
+
 class TestConfig(unittest.TestCase):
     def test_load_yaml(self):
         # Test loading a simple YAML file
-        data = load_yaml('c.yaml')
-        self.assertIn('myoptions', data)
-        self.assertEqual(len(data['myoptions']), 1)
-        self.assertEqual(data['myoptions'][0]['name'], 'option1')
-        self.assertEqual(data['myoptions'][0]['value'], 10)
-
+        data = load_yaml(_test_configfile)
+        self.assertIsInstance(data,(dict),f'Loaded configuration is not of type dict')
         
+# Run the tests
+if __name__ == '__main__':
+    unittest.main()

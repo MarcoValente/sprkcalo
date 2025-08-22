@@ -9,6 +9,8 @@ from .utils import (
 import logging as log
 from typing import List
 from pyspark.sql import functions as F
+import shutil
+import os
 
 @debug_msg
 @check_has_kwarg('name','col_name','nbins','bounds')
@@ -45,12 +47,17 @@ def get_histogram_df(spark_sess, df, name : str = None, col_name : str = None, n
 
 @debug_msg
 @check_has_kwarg('histograms', 'output_dir', 'hist_subdir')
-def histogram_df(spark_sess, df,*args,histograms:dict={},save_hists=True,hist_subdir='',**kwargs):
+def histogram_df(spark_sess, df,*args,histograms:dict={},save_hists=True,hist_subdir='',save_config=True,**kwargs):
     log.info(f'Retrieving histograms with dict {histograms}')
+    hist_outdir=f"{kwargs['output_dir']}/{hist_subdir}"
     for hist_dict in histograms:
         df_h = get_histogram_df(spark_sess, df, **hist_dict)
         if save_hists:
-            hist_dir=f"{kwargs['output_dir']}/{hist_subdir}"
-            create_dir(hist_dir)
-            df_h.write.mode('overwrite').json(f"{hist_dir}/{hist_dict['name']}")
+            create_dir(hist_outdir)
+            df_h.write.mode('overwrite').json(f"{hist_outdir}/{hist_dict['name']}")
+    if save_config:
+        src_file = kwargs['histConfig']
+        dst_file = os.path.join(hist_outdir, os.path.basename(src_file))
+        shutil.copy(kwargs['histConfig'], dst_file)
+
     return None
