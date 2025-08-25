@@ -63,7 +63,7 @@ class TestAnalysis(unittest.TestCase):
         config_dict['analysis_df']['operations']=[
             {
                 'name':'select', 
-                'expressions':['evt/.*','jets/.*']
+                'expressions':['evt/.*','jets/.*'],
             },
         ]
         config_dict['analysis_df']['matching']={}
