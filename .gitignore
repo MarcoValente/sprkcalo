@@ -20,6 +20,7 @@ build/
 *.swo
 *.env
 venv/
+venv2/
 .env
 .env.*
 
