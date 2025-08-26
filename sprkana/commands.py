@@ -18,6 +18,8 @@ from .utils import (
 )
 import os
 
+_checkpoint_dir="/tmp/checkpoints"
+
 @debug_msg
 @check_has_kwarg('analysis_df','analysis_df/data_schema','output_dir', 'force')
 def run_preana(*args,**kwargs):
@@ -62,5 +64,9 @@ def run_histdump(*args, spark=None, **kwargs):
     log.debug(f"Running 'histdump' command with args: {args} and kwargs: {kwargs}")
     run_preana(*args,**kwargs)
     spark_sess, df = run_ana(*args,spark=spark,**kwargs)
+    #Setup checkpoint to avoid multiple calculations for histograms later
+    spark_sess.sparkContext.setCheckpointDir(_checkpoint_dir)
+    df = df.checkpoint()
+    #Calculate histograms now
     _ = histogram_df(spark_sess,df,*args,**kwargs)
     return (spark_sess, None)
