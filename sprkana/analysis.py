@@ -217,7 +217,6 @@ def match_dR(eta1_name='', phi1_name='', eta2_name='', phi2_name=''):
         StructField("closest_dr", ArrayType(FloatType())),
         StructField("dr_matrix", ArrayType(ArrayType(FloatType()))),
     ]))
-
     def _match_dR(s: pd.Series) -> pd.Series:
         s[["closest_idx", "closest_dr", "dr_matrix"]]=s.apply(
             lambda row: pd.Series(compute_closest_j2(row[eta1_name], row[phi1_name], row[eta2_name], row[phi2_name])),
@@ -275,6 +274,46 @@ def op_add_deltaR_vars(df, *args, eta1_name='', phi1_name='', eta2_name='', phi2
 
     return df
 
+
+@check_has_kwarg('eta1_name','phi1_name','eta2_name','phi2_name','col_name_toadd')
+def op_add_deltaR_size(df, *args, eta1_name='', phi1_name='', eta2_name='', phi2_name='', col_name_toadd='', dr_to_match=0.4, **kwargs):
+
+    df = df.withColumn(
+        "matched",
+        match_dR(eta1_name=colname_from_schema_and_check(eta1_name),
+                 phi1_name=colname_from_schema_and_check(phi1_name),
+                 eta2_name=colname_from_schema_and_check(eta2_name),
+                 phi2_name=colname_from_schema_and_check(phi2_name),
+                 )(
+                    struct(
+                    col_from_schema_and_check(eta1_name),
+                    col_from_schema_and_check(phi1_name),
+                    col_from_schema_and_check(eta2_name),
+                    col_from_schema_and_check(phi2_name),
+                    )
+            )
+    )
+    df = df.withColumn('dr_matrix',df['matched'].dr_matrix)
+    df = df.withColumn(
+        "dr_matrix_matched",
+        F.expr(f"transform(dr_matrix, inner -> transform(inner, x -> x < {dr_to_match}))")
+    )
+    add_to_schema(col_name_toadd)
+    df = df.withColumn(
+        colname_from_schema_and_check(col_name_toadd),
+        F.transform(
+            F.col("dr_matrix_matched"),
+            lambda inner: F.aggregate(
+                inner,
+                F.lit(0),
+                lambda acc, x: acc + F.when(x, 1).otherwise(0)
+            )
+        )
+    )
+    df = df.drop('matched','dr_matrix','dr_matrix_matched')
+
+    return df
+
 @check_has_kwarg('expressions')
 def op_select(df, *args, expressions=[], **kwargs):
     cnames=[]
@@ -294,6 +333,7 @@ _ops_dict = {
     'add_delta' : op_add_delta,
     'add_deltaR' : op_add_deltaR,
     'add_deltaR_vars' : op_add_deltaR_vars,
+    'add_deltaR_size' : op_add_deltaR_size,
     'drop' : op_drop,
     'select' : op_select,
     #Filters
