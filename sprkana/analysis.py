@@ -252,7 +252,6 @@ def op_add_deltaR_vars(df, *args, eta1_name='', phi1_name='', eta2_name='', phi2
     df = df.withColumn("zipped", F.arrays_zip(*(F.col(cname) for cname in cnames_to_add_from_schema)))
     df = df.withColumn(
         "zipped_reordered",
-        # F.expr("transform(closest_idx, i -> element_at(zipped, i+1))")
         F.expr(f"""
         transform(
             sequence(1, size(closest_idx)),
@@ -326,6 +325,23 @@ def op_select(df, *args, expressions=[], **kwargs):
                 log.warning(f"The column matched to be selected called '{cname_tmp}' was not found in the main df.columns ({df.columns}). Skipping...")
     return df.select(*cnames)
 
+@check_has_kwarg('num_name','den_name', 'out_name_schema')
+def op_add_division(df, *args, num_name='', den_name='', out_name_schema='', **kwargs):
+    var1_colname = colname_from_schema_and_check(num_name)
+    var2_colname = colname_from_schema_and_check(den_name)
+    var1_col = col_from_schema_and_check(num_name)
+    var2_col = col_from_schema_and_check(den_name)
+    # division = F.when(var2_col != 0, var1_col / var2_col).otherwise(F.lit(_default_dummy_float))
+    add_to_schema(out_name_schema)
+    df=df.withColumn(colname_from_schema_and_check(out_name_schema),
+        F.transform(
+            F.arrays_zip(*[var1_col, var2_col]),
+            lambda x: x[var1_colname] / x[var2_colname]
+        )
+    )
+    
+    return df
+
 _ops_dict = {
     #Add/remove columns
     'add_jets_n' : op_add_jets_n,
@@ -334,6 +350,7 @@ _ops_dict = {
     'add_deltaR' : op_add_deltaR,
     'add_deltaR_vars' : op_add_deltaR_vars,
     'add_deltaR_size' : op_add_deltaR_size,
+    'add_division' : op_add_division,
     'drop' : op_drop,
     'select' : op_select,
     #Filters
