@@ -8,16 +8,22 @@ from .analysis import (
     analysis_df,
 )
 from .histogram import (
-    histogram_df
+    histogram_df,
 )
 from .schema import (
-    set_schema
+    set_schema,
 )
 from .utils import (
-    create_dir
+    create_dir,
+    load_yaml,
 )
-import os
+from .config import (
+    Config,
+    print_config,
+)
 
+import os
+import click
 _checkpoint_dir="/tmp/checkpoints"
 
 @debug_msg
@@ -47,26 +53,39 @@ def run_ana(*args, spark=None, **kwargs):
     df = analysis_df(spark_sess, *args, **kwargs)
     return (spark_sess, df)
 
-@debug_msg
-@check_has_kwarg('spark')
-def run_show(*args, spark=None, limit:int = 20, truncate=False, **kwargs):
+@click.command()
+@click.option('--limit', type=int, default=20, help="Number of rows to show")
+@click.option('--truncate', is_flag=True, default=False, help="Truncate output display or not")
+@click.pass_context
+def show(ctx,*args, **kwargs):
     log.info(f"Running 'show' command...")
     log.debug(f"Running 'show' command with args: {args} and kwargs: {kwargs}")
-    run_preana(*args,**kwargs)
-    spark_sess, df = run_ana(*args,spark=spark,**kwargs)
-    df.limit(limit).show(truncate=truncate)  # Display the DataFrame
+    #Loading and merging command options with main group options
+    config = Config(ctx.obj['config'], kwargs).as_dict()
+    print_config(config)
+    #Run analysis
+    run_preana(**config)
+    spark_sess, df = run_ana(**config)
+    df.limit(config["limit"]).show(truncate=config['truncate'])  # Display the DataFrame
     return (spark_sess, df)
 
-@debug_msg
-@check_has_kwarg('spark','output_dir','histograms')
-def run_histdump(*args, spark=None, **kwargs):
+@click.command()
+@click.option('--histConfig', type=str, default=None, help="YAML file containing histogram information to dump", required=True)
+@click.pass_context
+def hist_dump(ctx,*args, **kwargs):
     log.info(f"Running 'histdump' command...")
     log.debug(f"Running 'histdump' command with args: {args} and kwargs: {kwargs}")
-    run_preana(*args,**kwargs)
-    spark_sess, df = run_ana(*args,spark=spark,**kwargs)
+    #Loading and merging command options with main group options
+    config = Config(ctx.obj['config'], kwargs).as_dict()
+    #Loading also histconfig and add it to the main config
+    config.update(load_yaml(config['histconfig']))
+    print_config(config)
+    #Run analysis
+    run_preana(**config)
+    spark_sess, df = run_ana(**config)
     #Setup checkpoint to avoid multiple calculations for histograms later
     spark_sess.sparkContext.setCheckpointDir(_checkpoint_dir)
     df = df.checkpoint()
     #Calculate histograms now
-    _ = histogram_df(spark_sess,df,*args,**kwargs)
+    _ = histogram_df(spark_sess,df,**config)
     return (spark_sess, None)

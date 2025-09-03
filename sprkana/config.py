@@ -5,49 +5,31 @@ from .utils import (
     load_yaml
 )
 
+def load_config_and_merge(*args, **kwargs):
+    # Load main configuration if provided
+    config = {}
+    if kwargs.get('mainconfig'):
+        config = load_yaml(kwargs['mainconfig'])
+        log.info(f"Loaded main configuration from {kwargs['mainconfig']}")
     
-def parse_args():
-    #Init parser for defaults from YAML
-    _parser = argparse.ArgumentParser(description="SparkAnalysis CLI", add_help=False)
+    # Merge command line arguments, overriding config file values
+    for key, value in kwargs.items():
+        if value is not None:
+            config[key] = value
 
-    _parser.add_argument("-c", "--mainConfig", help="Path to general YAML config", required=True)
-    _parser.add_argument("-i", "--inputs", nargs='+', help="List of parquet input files")
-    _parser.add_argument("-N", "--names", nargs='+', help="List of names for parquet files")
-    _parser.add_argument('-l', "--output_level", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="INFO")
-    _parser.add_argument('-o', "--output_dir", type=str, default='', help='Directory where to store output files')
-    _parser.add_argument('-f', '--force', action='store_true', default=False, help='Force the script to write to existing directory')
-    _parser.add_argument("-n", "--nevents", type=int, default=-1, help="Number of events to process")
-    _parser.add_argument("--inputsToMatch", nargs='+', help="List of parquet input files to use for matching the main ones.")
+    return config
 
-    _subparsers = _parser.add_subparsers(dest="command", required=False)
-    # Show subcommand
-    _show_parser = _subparsers.add_parser("show", help="Show the dataframe of the model")
-    _show_parser.add_argument("--limit", type=int, default=20, help="Number of rows to show")
-    _show_parser.add_argument("--truncate", action='store_true', default=False, help="Truncate output display or not")
-    # Hist dump subcommand
-    _histdump_parser = _subparsers.add_parser('hist_dump', help="Dump histograms of the analysis")
-    _histdump_parser.add_argument('--histConfig', type=str, default=None, help="YAML file containing histogram information to dump", required=True)
+class Config:
+    """Merges YAML config with CLI options."""
+    def __init__(self, config_dict, cli_options):
+        self._config = dict(config_dict)
+        self._config.update({k: v for k, v in cli_options.items() if v is not None})
 
-    known_args, remaining_argv = _parser.parse_known_args()
+    def __getitem__(self, item):
+        return self._config.get(item)
 
-    #Set defaults
-    defaults = None
-    if known_args.mainConfig:
-        defaults = load_yaml(known_args.mainConfig)
-
-    default_hists = None
-    if 'histConfig' in vars(known_args).keys():
-        default_hists = load_yaml(known_args.histConfig)
-        defaults.update(default_hists)
-
-    #Main parser
-
-    parser = argparse.ArgumentParser(parents=[_parser], description="SparkAnalysis CLI")
-    parser.set_defaults(**defaults)
-
-    args= parser.parse_args(sys.argv[1:])
-
-    return args
+    def as_dict(self):
+        return self._config
 
 def print_config_rec(args, level=0, list_override=False):
     if list_override:

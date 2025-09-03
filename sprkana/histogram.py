@@ -56,8 +56,8 @@ def histogram_df(spark_sess, df,*args,histograms:dict={},save_hists=True,hist_su
             create_dir(hist_outdir)
             df_h.write.mode('overwrite').json(f"{hist_outdir}/{hist_dict['name']}")
     if save_config:
-        src_file = kwargs['histConfig']
+        src_file = kwargs['histconfig']
         dst_file = os.path.join(hist_outdir, os.path.basename(src_file))
-        shutil.copy(kwargs['histConfig'], dst_file)
+        shutil.copy(kwargs['histconfig'], dst_file)
 
     return None

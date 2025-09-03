@@ -368,14 +368,14 @@ def get_operation(*args,name='',**kwargs):
         log.error(f"Unknown operation '{name}'")
         raise ValueError
     
-@check_has_kwarg('matching','matching/schema_path', 'matching/vars_to_match', 'inputsToMatch')
+@check_has_kwarg('matching','matching/schema_path', 'matching/vars_to_match', 'inputstomatch')
 def matched_df(spark_sess, df, *args, operations=[], how='inner', matching_appendix='_ref', sep='/', **kwargs):
-    log.info(f"Performing matching to files \'{kwargs['inputsToMatch']}\'...")
-    df_tomatch = spark_sess.read.parquet(*kwargs['inputsToMatch'])
+    log.info(f"Performing matching to files \'{kwargs['inputstomatch']}\'...")
+    df_tomatch = spark_sess.read.parquet(*kwargs['inputstomatch'])
     
     if 'apply_same_ops' in kwargs['matching'].keys() and kwargs['matching']['apply_same_ops']:
         log.info('Performing the same operations on dataframe to match as requested...')
-        #Apply _analyze_df by forcing nevents = -1 and inputsToMatch=None from defaults
+        #Apply _analyze_df by forcing nevents = -1 and inputstomatch=None from defaults
         new_kwargs = deepcopy(kwargs)
         new_kwargs['matching'] = None
         df_tomatch = _analyze_df(None, df_tomatch, *args, operations = operations, **new_kwargs)
@@ -396,7 +396,7 @@ def matched_df(spark_sess, df, *args, operations=[], how='inner', matching_appen
     return df
 
 @debug_msg
-def _analyze_df(spark_sess, df, *args, operations=[], nevents=-1, matching = None, inputsToMatch=None, **kwargs):
+def _analyze_df(spark_sess, df, *args, operations=[], nevents=-1, matching = None, inputstomatch=None, **kwargs):
     log.info(f"Defining DataFrame with initial df={df}")
 
     for op in operations:
@@ -407,8 +407,8 @@ def _analyze_df(spark_sess, df, *args, operations=[], nevents=-1, matching = Non
     if nevents>0:
         df = df.limit(nevents)
 
-    if all(x is not None for x in [matching, inputsToMatch]):
-        df = matched_df(spark_sess, df, operations=operations, matching=matching, inputsToMatch=inputsToMatch)
+    if all(x is not None for x in [matching, inputstomatch]):
+        df = matched_df(spark_sess, df, operations=operations, matching=matching, inputstomatch=inputstomatch)
         if 'operations' in matching.keys():
             for op in matching['operations']:
                 log.info(f'Adding operation {op} after matching...')
@@ -418,9 +418,9 @@ def _analyze_df(spark_sess, df, *args, operations=[], nevents=-1, matching = Non
     return df
 
 @debug_msg
-def analysis_df(spark_sess, *args, analysis_df={}, inputs=[], inputsToMatch=None, **kwargs):
+def analysis_df(spark_sess, *args, analysis_df={}, inputs=[], inputstomatch=None, **kwargs):
     log.info(f"Creating DataFrame with spark_sess={spark_sess}, inputs={inputs}, analysis_df={analysis_df}")
     # Here you would typically read data into a DataFrame
     df = spark_sess.read.parquet(*inputs)
-    df = _analyze_df(spark_sess, df, *args, inputsToMatch=inputsToMatch, **analysis_df)
+    df = _analyze_df(spark_sess, df, *args, inputstomatch=inputstomatch, **analysis_df)
     return df
