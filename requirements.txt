@@ -40,8 +40,6 @@ pytz==2025.2
 PyYAML==6.0.2
 pyzmq==27.0.1
 six==1.17.0
-# Editable Git install with no remote (SparkAnalysis==0.1.0)
--e /afs/cern.ch/work/v/valentem/ATLAS/FastCaloSim/SparkAnalysis
 stack-data==0.6.3
 tornado==6.5.2
 traitlets==5.14.3
