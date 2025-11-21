@@ -95,7 +95,7 @@ def cols_from_schema_and_check(col_name_expr,*args,schema=None,**kwargs):
     return cols_from_schema(col_name_expr, *args, schema=schema, **kwargs)
 
 @check_has_kwarg('out_name_schema','count_col_name')
-def op_add_jets_n(df, *args, 
+def op_add_ncounts(df, *args, 
                   out_name_schema='', count_col_name='', **kwargs):
     # Assuming jets/jet_pt is the path to the jet pt column in the schema
     add_to_schema(out_name_schema)
@@ -273,6 +273,86 @@ def op_add_deltaR_vars(df, *args, eta1_name='', phi1_name='', eta2_name='', phi2
 
     return df
 
+@check_has_kwarg('eta1_name','phi1_name','eta2_name','phi2_name','col_name_toadd','col_name_tooperate','opname')
+def op_add_deltaR_operation(df, *args, eta1_name='', phi1_name='', eta2_name='', phi2_name='', col_name_toadd='', dr_to_match=0.4, col_name_tooperate='',opname='sum', **kwargs):
+
+    df = df.withColumn(
+        "matched",
+        match_dR(eta1_name=colname_from_schema_and_check(eta1_name),
+                 phi1_name=colname_from_schema_and_check(phi1_name),
+                 eta2_name=colname_from_schema_and_check(eta2_name),
+                 phi2_name=colname_from_schema_and_check(phi2_name),
+                 )(
+                    struct(
+                    col_from_schema_and_check(eta1_name),
+                    col_from_schema_and_check(phi1_name),
+                    col_from_schema_and_check(eta2_name),
+                    col_from_schema_and_check(phi2_name),
+                    )
+            )
+    )
+    df = df.withColumn('dr_matrix',df['matched'].dr_matrix)
+    df = df.withColumn(
+        "dr_matrix_matched",
+        F.expr(f"transform(dr_matrix, inner -> transform(inner, x -> x < {dr_to_match}))")
+    )
+    add_to_schema(col_name_toadd)
+
+    # Store Topoclusters variables per jet based on deltaR matching. 
+    df = df.withColumn(
+        'col_to_sum',
+        F.expr(f"""
+            transform(
+                dr_matrix_matched,
+                inner -> transform(
+                    sequence(0, size(inner)-1),
+                    i -> CASE
+                           WHEN inner[i] THEN {colname_from_schema_and_check(col_name_tooperate)}[i]
+                        END
+                )
+            )
+        """)
+    )
+
+    #Now compute operation
+    if opname=='mean': #mean
+        df = df.withColumn(
+            colname_from_schema_and_check(col_name_toadd),
+            F.expr("""
+            transform(
+                col_to_sum,
+                row -> aggregate(
+                        filter(row, x -> x IS NOT NULL),
+                        DOUBLE(0.0),
+                        (acc, x) -> acc + x
+                    ) / size(filter(row, x -> x IS NOT NULL))
+            )
+        """)
+        )
+
+    elif opname=='max': #maximum
+        df = df.withColumn(
+            colname_from_schema_and_check(col_name_toadd),
+            F.expr("""
+            transform(
+                col_to_sum,
+                row -> aggregate(
+                        filter(row, x -> x IS NOT NULL),
+                        DOUBLE(0.0),
+                        (acc, x) -> CASE WHEN x >= acc THEN x ELSE acc END
+                    )
+            )
+        """)
+        )
+
+    else:
+        log.error(f"Unknown operation '{opname}' for op_add_deltaR_operation")
+        raise ValueError
+
+    # df.filter(F.col('evt_num')==100015).select('evt_num','dr_matrix_matched','col_to_sum',colname_from_schema_and_check(col_name_toadd)).limit(4).show(truncate=False)
+    df = df.drop('matched','dr_matrix','dr_matrix_matched','col_to_sum')
+
+    return df
 
 @check_has_kwarg('eta1_name','phi1_name','eta2_name','phi2_name','col_name_toadd')
 def op_add_deltaR_size(df, *args, eta1_name='', phi1_name='', eta2_name='', phi2_name='', col_name_toadd='', dr_to_match=0.4, **kwargs):
@@ -344,12 +424,13 @@ def op_add_division(df, *args, num_name='', den_name='', out_name_schema='', **k
 
 _ops_dict = {
     #Add/remove columns
-    'add_jets_n' : op_add_jets_n,
+    'add_ncounts' : op_add_ncounts,
     'add_lead_obj' : op_add_lead_obj,
     'add_delta' : op_add_delta,
     'add_deltaR' : op_add_deltaR,
     'add_deltaR_vars' : op_add_deltaR_vars,
     'add_deltaR_size' : op_add_deltaR_size,
+    'add_deltaR_operation' : op_add_deltaR_operation,
     'add_division' : op_add_division,
     'drop' : op_drop,
     'select' : op_select,
@@ -407,7 +488,7 @@ def _analyze_df(spark_sess, df, *args, operations=[], nevents=-1, matching = Non
     if nevents>0:
         df = df.limit(nevents)
 
-    if all(x is not None for x in [matching, inputstomatch]):
+    if matching is not None and len(inputstomatch)>0:
         df = matched_df(spark_sess, df, operations=operations, matching=matching, inputstomatch=inputstomatch)
         if 'operations' in matching.keys():
             for op in matching['operations']:
