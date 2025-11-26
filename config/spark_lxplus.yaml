@@ -1,0 +1,4 @@
+spark.app.name: "SprkAnalysisCLI"
+spark.master  : "local[*]"
+spark.executor.memory: 10g
+spark.driver.memory : 10g

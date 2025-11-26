@@ -1,0 +1,14 @@
+jets: !include schema/jets_empflow.yaml
+truth_jets:
+  jet_pt: "a4truthwzjets_pt"
+  jet_eta: "a4truthwzjets_eta"
+  jet_phi: "a4truthwzjets_phi"
+  jet_m: "a4truthwzjets_m"
+evt:
+  evt_num: "evt_num"
+  run_num: "run_num"
+topoclus:
+  tc_e: "tc_energy"
+  tc_eta: "tc_eta"
+  tc_phi: "tc_phi"
+  tc_isolation: "tc_isolation"

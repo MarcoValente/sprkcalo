@@ -39,12 +39,6 @@ Thumbs.db
 # Test cache
 *.pytest_cache/
 
-# Spark
-sparkana/
-
-# Ignore config files with secrets
-config/*.yaml
-
 # Misc
 *.~
 outputs

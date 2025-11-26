@@ -1,0 +1,135 @@
+
+output_dir : ''
+hist_subdir : 'HISTS'
+nevents: -1
+inputs: ["input1.parquet"]
+names: ['input1_name']
+
+# Spark configuration
+spark: !include spark_lxplus.yaml
+
+analysis_df:
+  data_schema : !include data_schema.yaml
+  operations: 
+    - name: "select"
+      expressions: ['evt/.*','jets/.*','truth_jets/.*','topoclus/tc_(eta|phi|e)$']
+    - name: add_ncounts
+      count_col_name: "jets/jet_pt"
+      out_name_schema : "jets/jet_n"
+    - name: filt_greateq
+      col_name : "jets/jet_n"
+      value: 1
+    - name: add_ncounts
+      count_col_name: "truth_jets/jet_pt"
+      out_name_schema : "truth_jets/jet_n"
+    - name: filt_greateq
+      col_name : "truth_jets/jet_n"
+      value: 1
+    - name: add_deltaR_vars
+      eta1_name: "jets/jet_eta"
+      phi1_name: "jets/jet_phi"
+      eta2_name: "truth_jets/jet_eta"
+      phi2_name: "truth_jets/jet_phi"
+      dr_to_match: 0.1
+      col_vals_toadd : ["truth_jets/jet_pt", "truth_jets/jet_eta","truth_jets/jet_phi", "truth_jets/jet_m"] #Values of variables to match and store for eta1,phi1 collection
+      col_names_toadd : ["jets/jet_pt_trumatch", "jets/jet_eta_trumatch", "jets/jet_phi_trumatch", "jets/jet_m_trumatch"] #Names of the new variables
+    - name: add_division
+      num_name: "jets/jet_pt"
+      den_name: "jets/jet_pt_trumatch"
+      out_name_schema: "jets/jet_pt_R" #Jet pt response
+    - name: add_deltaR_size
+      eta1_name: "jets/jet_eta"
+      phi1_name: "jets/jet_phi"
+      eta2_name: "topoclus/tc_eta"
+      phi2_name: "topoclus/tc_phi"
+      col_name_toadd: "jets/jet_ntopoclus"
+      dr_to_match: 0.4
+    - name: add_ncounts
+      count_col_name: "topoclus/tc_e"
+      out_name_schema : "topoclus/tc_n"
+    - name: add_deltaR_operation
+      eta1_name: "jets/jet_eta"
+      phi1_name: "jets/jet_phi"
+      eta2_name: "topoclus/tc_eta"
+      phi2_name: "topoclus/tc_phi"
+      col_name_tooperate: "topoclus/tc_e"
+      col_name_toadd: "jets/jet_tc_e_mean"
+      opname: "mean"
+      dr_to_match: 0.4
+    - name: add_deltaR_operation
+      eta1_name: "jets/jet_eta"
+      phi1_name: "jets/jet_phi"
+      eta2_name: "topoclus/tc_eta"
+      phi2_name: "topoclus/tc_phi"
+      col_name_tooperate: "topoclus/tc_e"
+      col_name_toadd: "jets/jet_tc_e_max"
+      opname: "max"
+      dr_to_match: 0.4
+    - name: add_lead_obj
+      col_name_tosort : "jets/jet_pt"
+      col_names_toadd : [
+        "jets/jet_pt", 
+        "jets/jet_eta", 
+        "jets/jet_phi", 
+        "jets/jet_m", 
+        "jets/jet_time", 
+        "jets/jet_nconst", 
+        "jets/jet_ntopoclus", 
+        "jets/jet_pt_trumatch", 
+        "jets/jet_m_trumatch",
+        "jets/jet_pt_R",
+        "jets/jet_tc_e_mean",
+        "jets/jet_tc_e_max"
+        ]
+      indices_values : [0] #Indices to retain in output (0: leading, 1: subleading, etc.)
+      store_flattened : true
+    - name : "drop"
+      col_names_expr : [
+                        "jets/jet_(pt|eta|phi|m|n|time|nconst|ntopoclus|R)$",
+                        "jets/jet_(pt|eta|phi|m|n|time|nconst|ntopoclus)_trumatch(_\\d)?$",
+                        "truth_jets/jet_(pt|eta|phi|m|n|time|nconst)$",
+                        "topoclus/.*"
+                       ]
+  matching :
+    apply_same_ops : true # Tell the code to use the same operations defined for the analysis_df. If not, ignore...
+    vars_to_match: ['evt/evt_num', 'evt/run_num'] #Logical and is applied for all these variables
+    match_suffix : "_ref"
+    schema_path : "jets" #Schema path where to add new variables. Example: "jets/{var}_ref"
+    operations:
+      - name: "add_deltaR" #Perform deltaR matching to reference file
+        eta1_name: "jets/jet_eta_0"
+        phi1_name: "jets/jet_phi_0"
+        eta2_name: "jets/jet_eta_0_ref" #Use the same as eta1, phi1 if unspecified
+        phi2_name: "jets/jet_phi_0_ref"
+        out_name_schema: 'jets/dR_0'
+      - name: "add_delta" #Adding residual between variable in file and reference
+        var1_name: "jets/jet_pt_0"
+        var2_name: "jets/jet_pt_0_ref"
+        out_name_schema : "jets/jet_dpt_0"
+      - name: "add_delta"
+        var1_name: "jets/jet_eta_0"
+        var2_name: "jets/jet_eta_0_ref"
+        out_name_schema : "jets/jet_deta_0"
+      - name: "add_delta"
+        var1_name: "jets/jet_phi_0"
+        var2_name: "jets/jet_phi_0_ref"
+        out_name_schema : "jets/jet_dphi_0"
+      - name: "add_delta"
+        var1_name: "jets/jet_m_0"
+        var2_name: "jets/jet_m_0_ref"
+        out_name_schema : "jets/jet_dm_0"
+      - name: "add_delta"
+        var1_name: "jets/jet_time_0"
+        var2_name: "jets/jet_time_0_ref"
+        out_name_schema : "jets/jet_dtime_0"
+      - name: "add_delta"
+        var1_name: "jets/jet_nconst_0"
+        var2_name: "jets/jet_nconst_0_ref"
+        out_name_schema : "jets/jet_dnconst_0"
+      - name: "add_delta" #Adding residual between variable in file and reference
+        var1_name: "jets/jet_ntopoclus_0"
+        var2_name: "jets/jet_ntopoclus_0_ref"
+        out_name_schema : "jets/jet_dntopoclus_0"
+      - name: "filt_less" #Select only jets delta-R matched to reference
+        col_name : "jets/dR_0" 
+        value: 0.1
