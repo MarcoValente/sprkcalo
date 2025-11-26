@@ -1,10 +1,10 @@
-# FastCaloSim SparkAnalysis
+# SprkCalo
 [![Apache Spark](https://img.shields.io/badge/Apache%20Spark-4.0+-E25A1C?logo=apachespark&logoColor=fff)](#)
+[![NumPy](https://img.shields.io/badge/NumPy-2.0.+-4DABCF?logo=numpy&logoColor=fff)](#)
+[![Pandas](https://img.shields.io/badge/Pandas-2.3.+-150458?logo=pandas&logoColor=fff)](#)
 [![GitHub](https://img.shields.io/badge/github-repo-blue?logo=github&color=blue)](https://github.com/MarcoValente/sprkcalo)
-[![Status: Active](https://img.shields.io/badge/status-active-brightgreen.svg)]()
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-lightblue.svg)]()
-
-## Overview
+[![Status: Active](https://img.shields.io/badge/status-active-brightgreen.svg)]()
 
 **Sprkcalo** is an Apache Spark based analysis toolkit, designed for efficient data analysis of ATLAS calorimeter data. It provides scalable data processing and analysis capabilities tailored for high-energy physics workflows.
 
@@ -43,10 +43,6 @@ sprkcalonfig`: YAML configuration for analysis parameters
 
 See the [docs](docs/) folder for detailed usage and API reference.
 
-## Lsprkcalo
+## sprkcalo
 
 Distributed under the MIT License.
-
----
-
-![CERN Logo](https://upload.wikimedia.org/wikipedia/commons/6/6a/CERN_logo.svg)
