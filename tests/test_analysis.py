@@ -1,12 +1,12 @@
 import unittest
-from sprkana.config import load_yaml
+from sprkcalo.config import load_yaml
 from pprint import pprint as pp
-from sprkana.analysis import (
+from sprkcalo.analysis import (
     is_colname_in_schema,
     colname_from_schema,
     colnames_from_schema,
 )
-from sprkana.commands import (
+from sprkcalo.commands import (
     run_show
 )
 from copy import deepcopy
@@ -25,7 +25,7 @@ class TestAnalysis(unittest.TestCase):
         self.config_dict = load_yaml(_test_configfile)
         self.config_dict['inputs'] = [_test_parquetfile]
         self.config_dict['force'] = True
-        self.config_dict['output_dir'] = '/tmp/sprkana_test'
+        self.config_dict['output_dir'] = '/tmp/sprkcalo_test'
         self.config_dict['truncate'] = True
         
     def test_is_colname_in_schema(self):

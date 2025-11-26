@@ -1,19 +1,12 @@
 # FastCaloSim SparkAnalysis
-
-![ATLAS Banner](https://atlas.cern/sites/atlas-public.web.cern.ch/files/atlas_banner.png)
-![Spark Logo](https://upload.wikimedia.org/wikipedia/commons/f/ff/Spark-logo.png)
+[![Apache Spark](https://img.shields.io/badge/Apache%20Spark-4.0+-E25A1C?logo=apachespark&logoColor=fff)](#)
+[![GitHub](https://img.shields.io/badge/github-repo-blue?logo=github&color=blue)](https://github.com/MarcoValente/sprkcalo)
+[![Status: Active](https://img.shields.io/badge/status-active-brightgreen.svg)]()
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-lightblue.svg)]()
 
 ## Overview
 
-**FastCaloSim SparkAnalysis** is a toolkit designed for efficient analysis of ATLAS FastCaloSim data using Apache Spark. It provides scalable data processing and analysis capabilities tailored for high-energy physics workflows.
-
-## Features
-
-- Distributed data analysis with Apache Spark
-- FastCaloSim data ingestion and transformation
-- Customizable selection and filtering
-- Histogramming and summary statistics
-- Output to common formats (ROOT, Parquet, CSV)
+**Sprkcalo** is an Apache Spark based analysis toolkit, designed for efficient data analysis of ATLAS calorimeter data. It provides scalable data processing and analysis capabilities tailored for high-energy physics workflows.
 
 ## Command Line Interface
 
@@ -24,11 +17,11 @@ Example usage:
 sprkana --input /path/to/data.root --output results.parquet --config analysis.yaml
 ```
 
-### CLI Options
+### CLI Optionssprkcalo
 
 - `--input`: Path to input FastCaloSim file(s)
 - `--output`: Output file path
-- `--config`: YAML configuration for analysis parameters
+sprkcalonfig`: YAML configuration for analysis parameters
 - `--help`: Show all available options
 
 ## Getting Started
@@ -50,7 +43,7 @@ sprkana --input /path/to/data.root --output results.parquet --config analysis.ya
 
 See the [docs](docs/) folder for detailed usage and API reference.
 
-## License
+## Lsprkcalo
 
 Distributed under the MIT License.
 

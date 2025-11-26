@@ -18,14 +18,14 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    scripts=["sprkana/cli.py"],
+    scripts=["sprkcalo/cli.py"],
     entry_points={
         "console_scripts": [
-            "sprkana=sprkana.cli:main",
+            "sprkcalo=sprkcalo.cli:main",
         ],
     },
     package_data={
-        "sprkana": ["config/*.yaml", "data/*.csv"],
+        "sprkcalo": ["config/*.yaml", "data/*.csv"],
     },
     include_package_data=True,
 )

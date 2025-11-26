@@ -1,5 +1,5 @@
 import unittest
-from sprkana.config import load_yaml
+from sprkcalo.config import load_yaml
 
 _test_configfile='config/analysis.yaml'
 
