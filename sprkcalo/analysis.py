@@ -21,6 +21,7 @@ import pandas as pd
 from pyspark.sql.functions import pandas_udf, struct
 from pyspark.sql.types import StructType, StructField, ArrayType, FloatType, IntegerType
 import numpy as np
+import os
 
 _default_dummy_float = -999.
 
@@ -31,8 +32,13 @@ def get_spark_session(*args, **kwargs):
 
     spark_builder = SparkSession.builder
     # Apply all dictionary configs
-    for key, value in kwargs.items():
-        spark_builder = spark_builder.config(key, value)
+    for key, value in args[0].items():
+        _tmp_value = None
+        if isinstance(value,str):
+            _tmp_value = value if value[0]!='$' else os.environ.get(value.replace('$',''))
+        else:
+            _tmp_value = value
+        spark_builder = spark_builder.config(key, _tmp_value)
 
     #Create the Spark session
     spark = spark_builder.getOrCreate()

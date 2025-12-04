@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="SparkAnalysis",
+    name="SprkCalo",
     version="0.1.0",
     description="ATLAS FastCaloSim Spark-based analysis tools",
     author="Marco Valente",

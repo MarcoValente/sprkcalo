@@ -19,8 +19,7 @@ build/
 *.swp
 *.swo
 *.env
-venv/
-venv2/
+venv*/
 .env
 .env.*
 

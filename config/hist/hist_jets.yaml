@@ -41,6 +41,18 @@ histograms:
     col_name : 'jet_ntopoclus_0'
     xlabel: 'Leading jet $N_\text{topo-clusters}$'
 
+  - name: jet_tc_e_max_0
+    nbins: 100
+    bounds : [0, 3000]
+    col_name : 'jet_tc_e_max_0'
+    xlabel: 'Maximum topocluster $E$ (MeV)'
+    
+  - name: jet_tc_e_mean_0
+    nbins: 100
+    bounds : [0, 600]
+    col_name : 'jet_tc_e_mean_0'
+    xlabel: 'Average topocluster $E$ (MeV)'
+
   - name: jet_dpt_0
     nbins: 50
     bounds : [-500., 500.]
@@ -88,3 +100,15 @@ histograms:
     bounds : [-50, 50]
     col_name : 'jet_dntopoclus_0'
     xlabel: 'Leading jet $N_\text{topo-clusters}$ residual'
+
+  - name: jet_dtcemean_0
+    nbins: 100
+    bounds : [-0.25, 0.25]
+    col_name : 'jet_dtcemean_0'
+    xlabel: 'Leading jet $\langle E_\text{topo-clusters}\rangle$ residual (GeV)'
+
+  - name: jet_dtcemax_0
+    nbins: 100
+    bounds : [-0.25, 0.25]
+    col_name : 'jet_dtcemax_0'
+    xlabel: 'Leading jet $\text{max}(E_\text{topo-clusters})$ (GeV)'

@@ -6,7 +6,7 @@ inputs: ["input1.parquet"]
 names: ['input1_name']
 
 # Spark configuration
-spark: !include spark_lxplus.yaml
+spark: !include spark_lxplus_hadoop.yaml
 
 analysis_df:
   data_schema : !include data_schema.yaml
@@ -83,13 +83,13 @@ analysis_df:
         ]
       indices_values : [0] #Indices to retain in output (0: leading, 1: subleading, etc.)
       store_flattened : true
-    - name : "drop"
-      col_names_expr : [
-                        "jets/jet_(pt|eta|phi|m|n|time|nconst|ntopoclus|R)$",
-                        "jets/jet_(pt|eta|phi|m|n|time|nconst|ntopoclus)_trumatch(_\\d)?$",
-                        "truth_jets/jet_(pt|eta|phi|m|n|time|nconst)$",
-                        "topoclus/.*"
-                       ]
+    # - name : "drop"
+    #   col_names_expr : [
+    #                     "jets/jet_(pt|eta|phi|m|n|time|nconst|ntopoclus|R)$",
+    #                     "jets/jet_(pt|eta|phi|m|n|time|nconst|ntopoclus)_trumatch(_\\d)?$",
+    #                     "truth_jets/jet_(pt|eta|phi|m|n|time|nconst)$",
+    #                     "topoclus/.*"
+    #                    ]
   matching :
     apply_same_ops : true # Tell the code to use the same operations defined for the analysis_df. If not, ignore...
     vars_to_match: ['evt/evt_num', 'evt/run_num'] #Logical and is applied for all these variables
@@ -130,6 +130,14 @@ analysis_df:
         var1_name: "jets/jet_ntopoclus_0"
         var2_name: "jets/jet_ntopoclus_0_ref"
         out_name_schema : "jets/jet_dntopoclus_0"
+      - name: "add_delta" #Adding residual between variable in file and reference
+        var1_name: "jets/jet_tc_e_mean_0"
+        var2_name: "jets/jet_tc_e_mean_0_ref"
+        out_name_schema : "jets/jet_dtcemean_0"
+      - name: "add_delta" #Adding residual between variable in file and reference
+        var1_name: "jets/jet_tc_e_max_0"
+        var2_name: "jets/jet_tc_e_max_0_ref"
+        out_name_schema : "jets/jet_dtcemax_0"
       - name: "filt_less" #Select only jets delta-R matched to reference
         col_name : "jets/dR_0" 
         value: 0.1

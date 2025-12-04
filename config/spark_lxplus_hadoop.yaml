@@ -1,0 +1,10 @@
+spark.app.name: SprkCaloCLI
+spark.master  : yarn
+spark.executor.cores: 4
+spark.executor.memory: 16g
+spark.driver.memory : 10g
+spark.executorEnv.PYTHONPATH: $PYTHONPATH
+spark.executorEnv.LD_LIBRARY_PATH: $LD_LIBRARY_PATH
+#Number of executors to set
+spark.dynamicAllocation.minExecutors: 1
+spark.dynamicAllocation.maxExecutors: 32
