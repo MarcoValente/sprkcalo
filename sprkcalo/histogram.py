@@ -11,6 +11,8 @@ from typing import List
 from pyspark.sql import functions as F
 import shutil
 import os
+import re
+import subprocess
 
 @debug_msg
 @check_has_kwarg('name','col_name','nbins','bounds')
@@ -58,6 +60,9 @@ def histogram_df(spark_sess, df,*args,histograms:dict={},save_hists=True,hist_su
     if save_config:
         src_file = kwargs['histconfig']
         dst_file = os.path.join(hist_outdir, os.path.basename(src_file))
-        shutil.copy(kwargs['histconfig'], dst_file)
+        if re.match(r"hdfs://.*",hist_outdir):
+            subprocess.run(f"hdfs dfs -copyFromLocal {src_file} {dst_file}", shell=True)
+        else:
+            shutil.copy(kwargs['histconfig'], dst_file)
 
     return None

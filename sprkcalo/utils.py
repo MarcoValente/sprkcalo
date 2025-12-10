@@ -4,6 +4,7 @@ import yaml
 from typing import Union
 from pathlib import Path
 import re
+import subprocess
 
 def get_nested_value(data:dict, path:str, sep="/", ret_none=False):
         keys = path.split(sep)
@@ -36,8 +37,13 @@ def get_nested_values(data:dict, path:str, sep="/", ret_none=False):
                 return (None if ret_none else [path])
         return current
 
-def create_dir(directory: str):
-    if not os.path.exists(directory):
+def create_dir(directory: str, strip_filename: bool = False, strip_str: str = r"\w+://\w+"):
+    if strip_filename:
+        directory = re.sub(strip_str,"",directory)
+    if re.match(r"hdfs://.*",directory):
+        log.info(f'Creating output directory \'{directory}\' on hdfs...')
+        subprocess.run(f"hdfs dfs -mkdir -p {directory}", shell=True)
+    elif not os.path.exists(directory):
         log.info(f'Creating output directory \'{directory}\'...')
         os.makedirs(directory)
 

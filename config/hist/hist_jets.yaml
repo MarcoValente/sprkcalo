@@ -103,12 +103,12 @@ histograms:
 
   - name: jet_dtcemean_0
     nbins: 100
-    bounds : [-0.25, 0.25]
+    bounds : [-50, 50]
     col_name : 'jet_dtcemean_0'
     xlabel: 'Leading jet $\langle E_\text{topo-clusters}\rangle$ residual (GeV)'
 
   - name: jet_dtcemax_0
     nbins: 100
-    bounds : [-0.25, 0.25]
+    bounds : [-50, 50]
     col_name : 'jet_dtcemax_0'
     xlabel: 'Leading jet $\text{max}(E_\text{topo-clusters})$ (GeV)'

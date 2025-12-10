@@ -8,3 +8,10 @@ cd /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext && source hadoop-swan-setconf.sh ha
 echo Setting up Kerberos
 export KRB5CCNAME=FILE:$XDG_RUNTIME_DIR/krb5cc
 kinit
+
+echo Setting up ATLAS environment and XRootD
+setupATLAS && lsetup emi && lsetup xrootd && voms-proxy-init -voms atlas
+
+echo "-----------------------"
+echo   Hadoop setup complete
+echo "-----------------------"

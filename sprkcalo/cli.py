@@ -15,7 +15,7 @@ import click
 @click.option('-i', '--inputs', multiple=True, type=click.Path(exists=False), help="Input parquet files")
 @click.option('-l', '--output_level', type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]), default="INFO", help="Logging output level")
 @click.option('-n', '--nevents', type=int, default=-1, help="Number of events to process")
-@click.option('--inputsToMatch', multiple=True, type=click.Path(exists=True), help="Input parquet files to use for matching the main ones")
+@click.option('--inputsToMatch', multiple=True, type=click.Path(exists=False), help="Input parquet files to use for matching the main ones")
 @click.pass_context
 def main(ctx, *args, **kwargs):
     log.basicConfig(level=getattr(log, kwargs['output_level']), format='%(asctime)s %(levelname)s: %(message)s')
